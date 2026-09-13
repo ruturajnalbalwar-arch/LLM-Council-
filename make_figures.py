@@ -26,20 +26,35 @@ COL_W, DPI = 3.4, 300           # IEEE single column is about 3.4 inches
 GREYS = ["#b8b8b8", "#7a7a7a", "#2e2e2e"]
 
 
-def load(path):
+def load(path, required=True):
+    """Read a figure CSV. Returns None instead of exiting when an optional file
+    is absent or not yet filled in, so one missing figure does not discard the
+    other one and the tables computed alongside it."""
+    if not os.path.exists(path):
+        if required:
+            sys.exit("%s not found. Run score_eval.py first." % path)
+        print("%s not found, so that figure was not drawn." % path)
+        return None
     with open(path, newline="", encoding="utf8") as f:
         rows = [r for r in csv.reader(f) if r and not r[0].lstrip().startswith("#")]
     header, data = rows[0], rows[1:]
     missing = [r[0] for r in data if any(c.strip() == "" for c in r[1:])]
     if missing:
-        sys.exit("%s still has empty values for: %s\n"
-                 "Fill them in from your evaluation runs first."
-                 % (path, ", ".join(missing)))
+        msg = ("%s still has empty values for: %s"
+               % (path, ", ".join(missing)))
+        if required:
+            sys.exit(msg + "\nFill them in from your evaluation runs first.")
+        print(msg + "\nThat figure was not drawn. Nothing was plotted in its "
+                    "place; fill the file in and run this script again.")
+        return None
     return header, data
 
 
-def grouped_bars(path, out, title, ylabel, ymax):
-    header, data = load(path)
+def grouped_bars(path, out, title, ylabel, ymax, required=True):
+    loaded = load(path, required)
+    if loaded is None:
+        return
+    header, data = loaded
     labels = [r[0].replace(" ", "\n", 1) if len(r[0]) > 12 else r[0] for r in data]
     systems = header[1:]
     fig, ax = plt.subplots(figsize=(COL_W, COL_W * 0.72))
@@ -68,14 +83,10 @@ def grouped_bars(path, out, title, ylabel, ymax):
 
 grouped_bars("comparison.csv", "fig2_comparison.png",
              "Baselines vs. Atheneum", "Score (%)", 100)
-# Fig. 3 comes from the reader study, which is collected by hand rather than by
-# this pipeline. Skip it when that file is absent instead of failing the run and
-# throwing away Fig. 2 and the tables that were just computed. Nothing is
-# invented: with no reader_study.csv there is simply no Fig. 3.
-if os.path.exists("reader_study.csv"):
-    grouped_bars("reader_study.csv", "fig3_reader_study.png",
-                 "Mean reader ratings", "Rating (1-5)", 5)
-else:
-    print("reader_study.csv not found, so Fig. 3 was not drawn. Create it with "
-          "a header row and one row per rated dimension once the reader study "
-          "has been run.")
+# Fig. 3 comes from the reader study, whose numbers are produced by human
+# participants rather than by this pipeline. It is optional: when the file is
+# absent or not yet filled in, say so and carry on rather than failing the run
+# and discarding Fig. 2 and the tables computed alongside it. Nothing is
+# invented in its place.
+grouped_bars("reader_study.csv", "fig3_reader_study.png",
+             "Mean reader ratings", "Rating (1-5)", 5, required=False)

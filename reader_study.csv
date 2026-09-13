@@ -1,0 +1,12 @@
+# Fig. 3 and Table IV. Mean reader ratings, five-point scale.
+# Fill the two value columns from the reader study described in Section V.
+# These numbers come from human participants; nothing in this repository can
+# produce them. make_figures.py refuses to plot a row with an empty cell.
+#
+# "Would rely on (%)" belongs in Table IV only, not here: Fig. 3 is a 1-5
+# rating axis and a percentage would not share it.
+Dimension,Single agent,Atheneum
+Clarity,,
+Completeness,,
+Perceived trustworthiness,,
+Reasoning quality,,

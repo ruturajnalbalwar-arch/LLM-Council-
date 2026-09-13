@@ -100,3 +100,4 @@ jobs:
             checklists.json
             runs.jsonl
             fig2_comparison.png
+            fig3_reader_study.png
