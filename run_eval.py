@@ -99,11 +99,23 @@ async def run_council(q):
              "temperature": app.CHAIRMAN["temperature"]}
     text = await app.call_model(chair, csys, cuser, max_tokens=2000)
     elapsed = time.time() - t0
+    # The Chairman is called directly rather than through a stage, so a failure
+    # here is not caught by the stage filtering and would become the scored
+    # answer. Record it like any other dropped agent.
+    if app.failed(text):
+        app.FAILURES.append({"stage": "chairman", "id": "chairman",
+                             "name": app.CHAIRMAN["name"], "detail": text})
     tin = sum(a for a, _ in USAGE)
     tout = sum(b for _, b in USAGE)
     return {"answer": text, "latency": elapsed, "calls": len(USAGE),
             "tokens_in": tin, "tokens_out": tout,
-            "consensus": app.confidence(r4, ltm)}
+            "consensus": app.confidence(r4, ltm),
+            # Agents dropped mid-debate. app_complete.py excludes a failed agent
+            # from the later stages instead of passing its failure marker on, so
+            # a degraded run no longer looks like a clean one in the answer text
+            # -- this field is the only place the degradation is visible.
+            "failures": [dict(f) for f in app.FAILURES],
+            "agents_final": len(r3)}
 
 
 async def run_single(q, cot, budget):
@@ -117,7 +129,10 @@ async def run_single(q, cot, budget):
     tin = sum(a for a, _ in USAGE)
     tout = sum(b for _, b in USAGE)
     return {"answer": text, "latency": elapsed, "calls": 1,
-            "tokens_in": tin, "tokens_out": tout, "consensus": ""}
+            "tokens_in": tin, "tokens_out": tout, "consensus": "",
+            "failures": ([{"stage": "baseline", "name": "single call",
+                           "detail": text}] if app.failed(text) else []),
+            "agents_final": 0 if app.failed(text) else 1}
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -194,12 +209,21 @@ async def main():
         for i, r in enumerate(first):
             w.writerow([i, r["condition"]])
     print("wrote %s and blind_key.csv" % OUT_SHEET)
-    fails = [r for r in rows if "failed" in r["answer"][:60].lower()]
+    fails = [r for r in rows if r["failures"]]
     if fails:
-        print("\nWARNING: %d of %d runs contain a failure marker. "
-              "app_complete.py passes these downstream as if they were answers, "
-              "so these runs are contaminated. Discard them or fix call_model "
-              "before trusting the numbers." % (len(fails), len(rows)))
+        by_cond = {}
+        for r in fails:
+            by_cond[r["condition"]] = by_cond.get(r["condition"], 0) + 1
+        print("\nWARNING: %d of %d runs lost at least one agent to a failed "
+              "API call (%s)." % (len(fails), len(rows),
+                                  ", ".join("%s %d" % kv for kv in sorted(by_cond.items()))))
+        print("These runs completed, but a council run with fewer than four "
+              "agents is not the system the paper describes and is not "
+              "comparable to a clean run. Decide explicitly whether to discard "
+              "them; do not score them without saying so. Per-run detail is in "
+              "the 'failures' field of %s." % OUT_RUNS)
+    else:
+        print("\nNo agent failures. All runs used the full council.")
 
     if SMOKE:
         print("\nSmoke run finished. If the answers look sane, "

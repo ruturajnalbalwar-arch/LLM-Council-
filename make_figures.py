@@ -12,6 +12,7 @@ Both CSVs ship with empty value columns. Fill them from your evaluation runs.
 The script refuses to plot empty cells rather than inventing anything.
 """
 import csv
+import os
 import sys
 
 try:
@@ -67,5 +68,14 @@ def grouped_bars(path, out, title, ylabel, ymax):
 
 grouped_bars("comparison.csv", "fig2_comparison.png",
              "Baselines vs. Atheneum", "Score (%)", 100)
-grouped_bars("reader_study.csv", "fig3_reader_study.png",
-             "Mean reader ratings", "Rating (1-5)", 5)
+# Fig. 3 comes from the reader study, which is collected by hand rather than by
+# this pipeline. Skip it when that file is absent instead of failing the run and
+# throwing away Fig. 2 and the tables that were just computed. Nothing is
+# invented: with no reader_study.csv there is simply no Fig. 3.
+if os.path.exists("reader_study.csv"):
+    grouped_bars("reader_study.csv", "fig3_reader_study.png",
+                 "Mean reader ratings", "Rating (1-5)", 5)
+else:
+    print("reader_study.csv not found, so Fig. 3 was not drawn. Create it with "
+          "a header row and one row per rated dimension once the reader study "
+          "has been run.")

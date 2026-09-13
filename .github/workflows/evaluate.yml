@@ -65,12 +65,24 @@ jobs:
           python score_eval.py
           python make_figures.py
 
-      - name: Count contaminated runs
+      - name: Count degraded runs
+        if: always()
         run: |
-          n=$(grep -ci 'failed:' runs.jsonl || true)
-          echo "runs containing a failure marker: $n"
-          echo "If this is more than a few, the numbers are contaminated." \
-               "See CODE_VS_PAPER.md item 6."
+          python - <<'PY'
+          import json
+          runs = [json.loads(l) for l in open("runs.jsonl", encoding="utf8")]
+          bad = [r for r in runs if r.get("failures")]
+          print("runs that lost an agent to a failed call: %d of %d"
+                % (len(bad), len(runs)))
+          for r in bad:
+              print("  %s %s rep%s: %s" % (r["qid"], r["condition"], r["repeat"],
+                                           [f["name"] for f in r["failures"]]))
+          if bad:
+              print("\nA council run with fewer than four agents is not the "
+                    "system the paper describes. Decide explicitly whether to "
+                    "discard these before scoring. See docs/CODE_VS_PAPER.md "
+                    "item 6.")
+          PY
 
       - uses: actions/upload-artifact@v4
         if: always()
