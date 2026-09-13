@@ -1,0 +1,90 @@
+name: Evaluate
+
+# Runs the full paper evaluation on GitHub's runners. Nothing executes on your
+# machine. Start it from the Actions tab, then close the browser; results appear
+# as a downloadable artifact when it finishes.
+#
+# Before the first run, add two repository secrets under
+# Settings -> Secrets and variables -> Actions:
+#   GROQ_API_KEY
+#   CEREBRAS_API_KEY
+# Secrets are encrypted and are not visible in logs or to anyone who forks the
+# repo. This is a better place for them than a chat message or a notebook cell.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "smoke (about 20 calls) or full (about 450)"
+        required: true
+        default: smoke
+        type: choice
+        options: [smoke, full]
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install matplotlib
+
+      - name: Check the scripts are present
+        run: |
+          for f in run_eval.py judge_eval.py score_eval.py make_figures.py queries.json; do
+            test -f "$f" || { echo "missing $f - commit it to the repo root"; exit 1; }
+          done
+
+      - name: Run the pipeline
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          CEREBRAS_API_KEY: ${{ secrets.CEREBRAS_API_KEY }}
+        run: |
+          if [ "${{ inputs.mode }}" = "smoke" ]; then
+            python run_eval.py --smoke
+          else
+            python run_eval.py
+          fi
+
+      - name: Score the answers
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python judge_eval.py
+
+      - name: Aggregate and plot
+        run: |
+          python score_eval.py
+          python make_figures.py
+
+      - name: Count contaminated runs
+        run: |
+          n=$(grep -ci 'failed:' runs.jsonl || true)
+          echo "runs containing a failure marker: $n"
+          echo "If this is more than a few, the numbers are contaminated." \
+               "See CODE_VS_PAPER.md item 6."
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evaluation-results
+          retention-days: 30
+          path: |
+            comparison.csv
+            latency_tokens.csv
+            per_category.csv
+            consistency.csv
+            blind_scoring.csv
+            blind_key.csv
+            checklists.md
+            checklists.json
+            runs.jsonl
+            fig2_comparison.png

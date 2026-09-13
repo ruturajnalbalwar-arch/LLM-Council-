@@ -1,0 +1,36 @@
+[
+  {"id": "F01", "category": "factual", "query": "What causes the seasons on Earth?"},
+  {"id": "F02", "category": "factual", "query": "Why does adding salt to water raise its boiling point?"},
+  {"id": "F03", "category": "factual", "query": "What is the difference between TCP and UDP?"},
+  {"id": "F04", "category": "factual", "query": "How does a transformer step down voltage?"},
+  {"id": "F05", "category": "factual", "query": "What is the function of the myelin sheath?"},
+  {"id": "F06", "category": "factual", "query": "Why is the sky blue during the day and red at sunset?"},
+
+  {"id": "R01", "category": "reasoning", "query": "A tank fills in 6 hours through pipe A and 9 hours through pipe B. A drain empties it in 12 hours. All three are open. How long until the tank is full?"},
+  {"id": "R02", "category": "reasoning", "query": "A shop raises a price by 20 percent, then offers 20 percent off. Is the final price higher, lower, or the same as the original? Explain."},
+  {"id": "R03", "category": "reasoning", "query": "If every student who passed the practical also passed the theory, and 12 students passed the theory while 15 passed the practical, what can you conclude?"},
+  {"id": "R04", "category": "reasoning", "query": "A car travels 60 km at 30 km/h and returns the same distance at 60 km/h. What is the average speed for the whole journey?"},
+  {"id": "R05", "category": "reasoning", "query": "A test is 95 percent accurate for a disease affecting 1 in 1000 people. Someone tests positive. Roughly what is the chance they have the disease?"},
+  {"id": "R06", "category": "reasoning", "query": "Three switches outside a room control three bulbs inside. You may enter the room only once. How do you determine which switch controls which bulb?"},
+
+  {"id": "A01", "category": "ambiguous", "query": "Is Python fast?"},
+  {"id": "A02", "category": "ambiguous", "query": "How long should a research paper be?"},
+  {"id": "A03", "category": "ambiguous", "query": "Should I use a database or a file?"},
+  {"id": "A04", "category": "ambiguous", "query": "What is the best way to learn a language?"},
+  {"id": "A05", "category": "ambiguous", "query": "Is it better to rent or to buy?"},
+  {"id": "A06", "category": "ambiguous", "query": "How much testing is enough?"},
+
+  {"id": "O01", "category": "open", "query": "Compare microservices and a monolithic architecture for a team of four engineers building their first product."},
+  {"id": "O02", "category": "open", "query": "What are the strongest arguments for and against requiring undergraduate research projects?"},
+  {"id": "O03", "category": "open", "query": "Discuss the trade-offs between accuracy and interpretability in machine learning models used for medical screening."},
+  {"id": "O04", "category": "open", "query": "Evaluate whether remote work improves or harms engineering team productivity."},
+  {"id": "O05", "category": "open", "query": "What are the main obstacles to adopting electric two-wheelers in Indian cities?"},
+  {"id": "O06", "category": "open", "query": "Argue for and against using large language models to grade student essays."},
+
+  {"id": "P01", "category": "applied", "query": "I have three weeks before my data structures exam and I have not started. How should I plan my revision?"},
+  {"id": "P02", "category": "applied", "query": "What general lifestyle factors are associated with lowering blood pressure?"},
+  {"id": "P03", "category": "applied", "query": "How should a third-year engineering student prepare for a research internship application?"},
+  {"id": "P04", "category": "applied", "query": "What is the general advice on how much sleep affects memory and learning?"},
+  {"id": "P05", "category": "applied", "query": "How do I decide which programming language to learn first for embedded systems?"},
+  {"id": "P06", "category": "applied", "query": "What should someone consider before starting a regular running routine?"}
+]

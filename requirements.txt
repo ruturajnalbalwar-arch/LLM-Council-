@@ -1,0 +1,15 @@
+# Atheneum: application + paper evaluation harness.
+
+# app_complete.py (web UI; run_eval.py execs the pipeline half of this file,
+# so its top-level imports must resolve even though the UI never launches).
+gradio
+
+# Groq endpoints: Logician, Scout, Chairman, and the judge in judge_eval.py.
+groq
+
+# Cerebras endpoints (Maverick, Scholar) are reached through the OpenAI-
+# compatible client with base_url=https://api.cerebras.ai/v1.
+openai
+
+# make_figures.py
+matplotlib
